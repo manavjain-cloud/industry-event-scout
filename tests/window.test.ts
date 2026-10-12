@@ -42,3 +42,16 @@ describe("classifyAgainstWindow (upcoming 30-day filtering)", () => {
     expect(classifyAgainstWindow({ startsOn: "" }, W)).toBe("invalid");
   });
 });
+
+describe("recurring series are not mistaken for one ongoing event (found in live data)", () => {
+  it("rejects a listing that started long ago and ends months from now", () => {
+    expect(classifyAgainstWindow({ startsOn: "2026-05-01", endsOn: "2027-03-31" }, W)).toBe("series");
+    expect(classifyAgainstWindow({ startsOn: "2026-06-06", endsOn: "2026-12-20" }, W)).toBe("series");
+  });
+  it("still keeps a genuine multi-day conference that is under way", () => {
+    expect(classifyAgainstWindow({ startsOn: "2026-10-10", endsOn: "2026-10-14" }, W)).toBe("in_window");
+  });
+  it("keeps a long listing that STARTS inside the window (its start date is real)", () => {
+    expect(classifyAgainstWindow({ startsOn: "2026-10-20", endsOn: "2027-01-31" }, W)).toBe("in_window");
+  });
+});

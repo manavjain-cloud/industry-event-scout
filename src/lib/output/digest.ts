@@ -7,6 +7,9 @@ import { hashPreferences } from "@/lib/processing/normalize";
 import type { DeadlineInfo, EventRecord, Preferences } from "@/lib/types";
 import { renderDigestHtml, renderDigestText } from "./email";
 
+/** Urgent events that may be added beyond the configured digest size. */
+const MAX_EXTRA_URGENT = 5;
+
 export interface DigestItem {
   event: EventRecord;
   rank: number;
@@ -94,7 +97,14 @@ export function buildDigest(
     }
   }
 
-  const items = pool.slice(0, prefs.maxDigestEvents).map((item, i) => ({ ...item, rank: i + 1 }));
+  // The size cap keeps the email scannable, but it must never hide a closing deadline: relevant events whose
+  // registration closes in under 7 days are always included (a few extra at most), after the ranked list.
+  const top = pool.slice(0, prefs.maxDigestEvents);
+  const overflowUrgent = pool.slice(prefs.maxDigestEvents).filter((i) => i.deadline.status === "urgent").slice(0, MAX_EXTRA_URGENT);
+  if (overflowUrgent.length > 0) {
+    notes.push(`${overflowUrgent.length} more event${overflowUrgent.length === 1 ? "" : "s"} with a registration deadline under ${URGENT_DEADLINE_DAYS} days ${overflowUrgent.length === 1 ? "was" : "were"} added beyond your limit of ${prefs.maxDigestEvents}.`);
+  }
+  const items = [...top, ...overflowUrgent].map((item, i) => ({ ...item, rank: i + 1 }));
   const urgent = items
     .filter((i) => i.deadline.status === "urgent")
     .sort((a, b) => (a.deadline.daysRemaining ?? 99) - (b.deadline.daysRemaining ?? 99));
@@ -122,7 +132,8 @@ export function buildDigest(
     totalConsidered: all.length,
     readMinutes: 1,
   };
-  const words = renderDigestText(digest, prefs).split(/\s+/).filter(Boolean).length;
+  // Links are clicked, not read: leave raw URLs out of the reading-time estimate.
+  const words = renderDigestText(digest, prefs).split(/\s+/).filter((w) => w && !/^https?:\/\//i.test(w)).length;
   digest.readMinutes = Math.max(1, Math.round((words / WORDS_PER_MINUTE) * 2) / 2);
   return digest;
 }

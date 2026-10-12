@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { decodeEntities } from "@/lib/input/html";
 
 /** City aliases -> canonical display name. Only used for matching, never to invent a city. */
 const CITY_ALIASES: Record<string, string> = {
@@ -51,6 +52,12 @@ export function canonicalCity(city: string | null | undefined): string | null {
   if (!key) return null;
   const alias = CITY_ALIASES[key];
   if (alias) return alias;
+  // A street address in the city field: resolve to the known city it mentions ("... Whitefield Bengaluru").
+  const words = ` ${key.replace(/-/g, " ")} `;
+  const mentioned = Object.keys(CITY_ALIASES)
+    .filter((a) => words.includes(` ${a.replace(/-/g, " ")} `))
+    .sort((a, b) => b.length - a.length)[0];
+  if (mentioned) return CITY_ALIASES[mentioned];
   return key.replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
@@ -116,7 +123,7 @@ export function normalizedTitle(title: string): string {
 
 export function cleanText(value: string | null | undefined, max = 300): string | null {
   if (!value) return null;
-  const cleaned = value.replace(/\s+/g, " ").trim();
+  const cleaned = decodeEntities(value).replace(/\s+/g, " ").trim();
   return cleaned ? cleaned.slice(0, max) : null;
 }
 

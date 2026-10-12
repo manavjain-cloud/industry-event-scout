@@ -120,6 +120,15 @@ describe("EventsPanel", async () => {
     expect(titles()).toHaveLength(3);
   });
 
+  it("hides low matches by default, says how many, and shows them on request", async () => {
+    const withLow = [...events, ev({ id: "d", title: "Delta Trek Weekend", score: 5, belowThreshold: true })];
+    renderPanel(withLow);
+    expect(titles()).not.toContain("Delta Trek Weekend");
+    expect(screen.getByText(/1 low match \(score under 40\) hidden/)).toBeInTheDocument();
+    await userEvent.click(screen.getByLabelText("Show low matches"));
+    expect(titles()).toContain("Delta Trek Weekend");
+  });
+
   it("explains an empty collection and offers a discovery run without inventing events", async () => {
     const onRefresh = vi.fn();
     render(<EventsPanel events={[]} focusAreas={[]} excludedNote={null} onRefresh={onRefresh} refreshing={false} />);

@@ -14,7 +14,14 @@ export function computeWindow(now: Date, tz: string, windowDays: number): EventW
   return { start, end: addDays(start, windowDays), timezone: tz, windowDays };
 }
 
-export type WindowVerdict = "in_window" | "ended" | "too_far" | "invalid";
+export type WindowVerdict = "in_window" | "ended" | "too_far" | "invalid" | "series";
+
+/**
+ * Real conferences last days, not months. A listing whose start date is already past and whose end
+ * date is far away is a recurring series / long-running page (start = first ever session, end = last
+ * future one): its next occurrence date is unknown, so it is not presented as an ongoing event.
+ */
+export const MAX_EVENT_SPAN_DAYS = 14;
 
 /**
  * An event belongs in the digest if it has not ended and starts on or before the
@@ -30,6 +37,7 @@ export function classifyAgainstWindow(
     event.endsOn && isValidIsoDate(event.endsOn) && event.endsOn >= event.startsOn ? event.endsOn : event.startsOn;
   if (lastDay < window.start) return "ended";
   if (event.startsOn > window.end) return "too_far";
+  if (event.startsOn < window.start && calendarDaysBetween(event.startsOn, lastDay) > MAX_EVENT_SPAN_DAYS) return "series";
   return "in_window";
 }
 

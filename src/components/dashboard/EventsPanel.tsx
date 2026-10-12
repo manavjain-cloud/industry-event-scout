@@ -29,6 +29,7 @@ export function EventsPanel({
   const [focus, setFocus] = useState("all");
   const [sort, setSort] = useState<SortKey>("relevance");
   const [urgentOnly, setUrgentOnly] = useState(false);
+  const [showLow, setShowLow] = useState(false);
 
   const cities = useMemo(() => [...new Set(events.map((e) => canonicalCity(e.city)).filter((c): c is string => !!c))].sort(), [events]);
 
@@ -36,6 +37,7 @@ export function EventsPanel({
     const q = query.trim().toLowerCase();
     const filtered = events.filter((e) => {
       if (urgentOnly && e.deadline.status !== "urgent") return false;
+      if (!showLow && e.belowThreshold) return false;
       if (city !== "all" && canonicalCity(e.city) !== city) return false;
       if (focus !== "all" && !e.matchedFocusAreas.includes(focus)) return false;
       if (q && !`${e.title} ${e.venue ?? ""} ${e.summary ?? ""}`.toLowerCase().includes(q)) return false;
@@ -50,7 +52,8 @@ export function EventsPanel({
       }
       return (b.score ?? -1) - (a.score ?? -1) || a.startsOn.localeCompare(b.startsOn);
     });
-  }, [events, query, city, focus, sort, urgentOnly]);
+  }, [events, query, city, focus, sort, urgentOnly, showLow]);
+  const hiddenLow = useMemo(() => (showLow ? 0 : events.filter((e) => e.belowThreshold).length), [events, showLow]);
 
   const filtersActive = query !== "" || city !== "all" || focus !== "all" || urgentOnly;
   const clear = () => {
@@ -116,6 +119,10 @@ export function EventsPanel({
           <input type="checkbox" checked={urgentOnly} onChange={(e) => setUrgentOnly(e.target.checked)} className="size-4 accent-rose" />
           Closing in &lt; 7 days
         </label>
+        <label className="flex cursor-pointer items-center gap-2 rounded-lg border border-line-strong px-3 py-2 text-sm">
+          <input type="checkbox" checked={showLow} onChange={(e) => setShowLow(e.target.checked)} className="size-4 accent-cyan" />
+          Show low matches
+        </label>
         {filtersActive && (
           <Button variant="ghost" icon={X} onClick={clear}>
             Clear
@@ -124,7 +131,7 @@ export function EventsPanel({
       </div>
 
       <p className="mb-3 text-xs text-faint" aria-live="polite">
-        Showing {visible.length} of {events.length} events.{excludedNote ? ` ${excludedNote}` : ""}
+        Showing {visible.length} of {events.length} events.{hiddenLow > 0 ? ` ${hiddenLow} low match${hiddenLow === 1 ? "" : "es"} (score under 40) hidden.` : ""}{excludedNote ? ` Not listed: ${excludedNote}.` : ""}
       </p>
 
       {visible.length === 0 ? (

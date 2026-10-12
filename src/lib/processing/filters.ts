@@ -4,6 +4,7 @@ import { cityMatchesTargets } from "./normalize";
 
 export interface FilterCounts {
   ended: number;
+  series: number;
   tooFar: number;
   invalidDate: number;
   online: number;
@@ -28,11 +29,12 @@ export function applyDeterministicFilters(
   window: EventWindow,
   prefs: Pick<Preferences, "cities">,
 ): FilterResult {
-  const counts: FilterCounts = { ended: 0, tooFar: 0, invalidDate: 0, online: 0, outsideTargetCities: 0 };
+  const counts: FilterCounts = { ended: 0, series: 0, tooFar: 0, invalidDate: 0, online: 0, outsideTargetCities: 0 };
   const kept: EventRecord[] = [];
   for (const e of events) {
     const verdict = classifyAgainstWindow(e, window);
     if (verdict === "ended") counts.ended += 1;
+    else if (verdict === "series") counts.series += 1;
     else if (verdict === "too_far") counts.tooFar += 1;
     else if (verdict === "invalid") counts.invalidDate += 1;
     else if (e.format === "online") counts.online += 1;

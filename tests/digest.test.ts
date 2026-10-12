@@ -46,6 +46,19 @@ describe("digest assembly", () => {
     expect(d.readMinutes).toBeLessThanOrEqual(5);
   });
 
+  it("never lets the size cap hide a closing deadline (found in live data)", () => {
+    const events = Array.from({ length: 10 }, (_, i) => ev(`Strong Event ${i}`, { relevanceScore: 95 - i }));
+    const closing = ev("Closing Soon Summit", { relevanceScore: 55, registrationDeadline: "2026-10-15" });
+    const lowAndClosing = ev("Irrelevant But Closing", { relevanceScore: 10, registrationDeadline: "2026-10-14" });
+    const d = buildDigest([...events, closing, lowAndClosing], { ...PREFS, maxDigestEvents: 8 }, NOW);
+    expect(d.items).toHaveLength(9); // 8 by rank + the urgent one beyond the cap
+    expect(d.items.at(-1)?.event.title).toBe("Closing Soon Summit");
+    expect(d.urgent.map((i) => i.event.title)).toEqual(["Closing Soon Summit"]);
+    expect(d.items.map((i) => i.event.title)).not.toContain("Irrelevant But Closing"); // still below the relevance threshold
+    expect(d.notes.join(" ")).toMatch(/added beyond your limit of 8/);
+    expect(renderDigest(d, PREFS).html).toContain("Act now");
+  });
+
   it("falls back to an honest unranked list when no event has an AI score", () => {
     const events = [ev("Later One", { relevanceScore: null, startsOn: "2026-11-05" }), ev("Sooner One", { relevanceScore: null, startsOn: "2026-10-20" }), ev("Closing One", { relevanceScore: null, startsOn: "2026-11-01", registrationDeadline: "2026-10-14" })];
     const d = buildDigest(events, PREFS, NOW);

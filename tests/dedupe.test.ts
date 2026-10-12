@@ -107,3 +107,16 @@ describe("normalization helpers", () => {
     expect(titleSimilarity("AI Summit", "Wine Tasting").jaccard).toBe(0);
   });
 });
+
+describe("messy source data found in live results", () => {
+  it("decodes HTML entities in event text", async () => {
+    const { cleanText } = await import("@/lib/processing/normalize");
+    expect(cleanText("Founders &amp; Investors Xplore &#8211; CEDAT")).toBe("Founders & Investors Xplore - CEDAT".replace("-", "\u2013"));
+  });
+  it("resolves a street address in the city field to the known city", () => {
+    expect(canonicalCity("Whitefield Main Road Itpb Whitefield Bengaluru")).toBe("Bengaluru");
+    expect(cityMatchesTargets("Whitefield Main Road Itpb Whitefield Bengaluru", ["Bengaluru"])).toBe(true);
+    expect(canonicalCity("Sofitel Abu Dhabi Corniche")).toBe("Sofitel Abu Dhabi Corniche");
+    expect(cityMatchesTargets("Abu Dhabi", ["Bengaluru"])).toBe(false);
+  });
+});
