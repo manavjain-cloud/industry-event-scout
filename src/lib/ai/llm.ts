@@ -1,4 +1,4 @@
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import { z } from "zod";
 import { errorMessage } from "@/lib/log";
 
@@ -83,6 +83,10 @@ export function createGeminiClient(opts: GeminiOptions): LlmClient {
   return {
     async generateJson(req) {
       let lastError: LlmError | undefined;
+      // Hidden "thinking" tokens count against maxOutputTokens and can truncate the JSON on large batches
+      // (observed live). Extraction and ranking need no deep reasoning, so use the LOW level; if a model
+      // rejects the setting, retry once without it.
+      let useThinkingLevel = true;
       for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         try {
           const response = await generate({
@@ -94,6 +98,7 @@ export function createGeminiClient(opts: GeminiOptions): LlmClient {
               responseJsonSchema: req.jsonSchema,
               temperature: 0.1,
               maxOutputTokens: 8192,
+              ...(useThinkingLevel ? { thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } } : {}),
               httpOptions: { timeout: opts.timeoutMs ?? 60_000 },
             },
           });
@@ -105,6 +110,11 @@ export function createGeminiClient(opts: GeminiOptions): LlmClient {
             throw new LlmError("Gemini returned text that is not valid JSON.", "invalid_json");
           }
         } catch (err) {
+          if (useThinkingLevel && /thinking/i.test(errorMessage(err)) && /not supported|invalid/i.test(errorMessage(err))) {
+            useThinkingLevel = false;
+            attempt -= 1; // the rejected setting does not consume an attempt
+            continue;
+          }
           lastError = classify(err);
           const retryable = lastError.kind === "unavailable" || lastError.kind === "quota" || lastError.kind === "timeout" || lastError.kind === "invalid_json";
           if (!retryable || attempt === maxAttempts) break;

@@ -148,6 +148,18 @@ describe("Gemini client", () => {
     expect(generate).toHaveBeenCalledTimes(attempts);
   });
 
+  it("asks for a LOW thinking level and retries without it if the model rejects the setting", async () => {
+    const generate = vi
+      .fn<(a: { config: Record<string, unknown> }) => Promise<{ text?: string }>>()
+      .mockRejectedValueOnce(Object.assign(new Error("Thinking level LOW is not supported for this model"), { status: 400 }))
+      .mockResolvedValueOnce({ text: '{"ok":1}' });
+    const client = createGeminiClient({ apiKey: "k".repeat(12), model: "m", generate: generate as never, sleep, maxAttempts: 1 });
+    expect(await client.generateJson(req)).toEqual({ ok: 1 });
+    expect(generate).toHaveBeenCalledTimes(2);
+    expect(generate.mock.calls[0][0].config.thinkingConfig).toEqual({ thinkingLevel: "LOW" });
+    expect(generate.mock.calls[1][0].config.thinkingConfig).toBeUndefined();
+  });
+
   it("fails with invalid_json when the model returns prose", async () => {
     const generate = vi.fn(async () => ({ text: "Sure! Here are your events..." }));
     const client = createGeminiClient({ apiKey: "k".repeat(12), model: "m", generate, sleep, maxAttempts: 2 });

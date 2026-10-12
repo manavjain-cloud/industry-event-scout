@@ -42,7 +42,7 @@ Server-only secrets are never prefixed `NEXT_PUBLIC_` and never reach the browse
 | `DATABASE_URL` | Neon console → *Connection details* (pooled, `sslmode=require`) | |
 | `TAVILY_API_KEY` | app.tavily.com → API Keys (`tvly-…`) | free plan: 1,000 credits/month |
 | `GEMINI_API_KEY` | Google AI Studio → *Get API key* | |
-| `GEMINI_MODEL` | any Gemini **Flash** model your key can use | default `gemini-3.6-flash`; confirm with `npm run check:integrations -- gemini` (it lists what your key can use) |
+| `GEMINI_MODEL` | any Gemini **Flash** model your key can use | default `gemini-3.8-flash` (works with a standard AI Studio key; `gemini-2.5-flash` is closed to new users); confirm with `npm run check:integrations -- gemini` (it lists what your key can use) |
 | `RESEND_API_KEY` | resend.com → API Keys | |
 | `RESEND_FROM_EMAIL` | e.g. `Industry Event Scout <onboarding@resend.dev>` | see *Email delivery* below |
 | `CRON_SECRET` | generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` | ≥ 16 chars; Vercel sends it automatically as `Authorization: Bearer …` |

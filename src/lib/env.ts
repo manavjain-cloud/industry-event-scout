@@ -9,7 +9,7 @@ import { z } from "zod";
 
 const schemas = {
   GEMINI_API_KEY: z.string().min(10),
-  GEMINI_MODEL: z.string().min(3).default("gemini-3.6-flash"),
+  GEMINI_MODEL: z.string().min(3).default("gemini-3.8-flash"),
   TAVILY_API_KEY: z.string().min(10),
   DATABASE_URL: z.string().min(10).refine((v) => /^postgres(ql)?:\/\//.test(v), "must be a postgres:// URL"),
   RESEND_API_KEY: z.string().min(10),

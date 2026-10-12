@@ -18,7 +18,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 dotenv.config({ path: path.join(root, ".env.local"), quiet: true });
 
 const only = process.argv[2];
-const redact = (s) => String(s).replace(/(tvly-|AIza|re_)[A-Za-z0-9_-]+/g, "$1***").replace(/postgres(ql)?:\/\/\S+/g, "[redacted]");
+const redact = (s) => String(s).replace(/(tvly-|AIza|AQ.|re_|napi_)[A-Za-z0-9_-]+/g, "$1***").replace(/postgres(ql)?:\/\/\S+/g, "[redacted]");
 const results = [];
 const run = async (name, fn) => {
   if (only && only !== name) return;
@@ -64,7 +64,7 @@ await run("gemini", async () => {
   const out = await ai.models.generateContent({
     model,
     contents: 'Return JSON {"ok": true, "score": 73}',
-    config: { responseMimeType: "application/json", maxOutputTokens: 64 },
+    config: { responseMimeType: "application/json", maxOutputTokens: 256, thinkingConfig: { thinkingLevel: "LOW" } },
   });
   const parsed = JSON.parse(out.text ?? "{}");
   if (parsed.ok !== true) throw new Error("model answered but not with the requested JSON");
