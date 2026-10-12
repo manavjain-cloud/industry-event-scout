@@ -8,6 +8,8 @@ against his focus areas with **Gemini Flash**, flags registration deadlines **fe
 > The email is the product. The dashboard supports it: review events, edit focus areas and cities without touching code,
 > preview / test-send the digest, trigger a controlled refresh and check whether scheduled runs succeeded.
 
+- **Live app:** https://industry-event-scout.vercel.app (dashboard is password-protected) · **Repository:** https://github.com/manavjain-cloud/industry-event-scout
+- Verified on the deployed app (2026-10-12): protected endpoints answer 401 anonymously; a real weekly run completed in about 140 s (14 Tavily searches, 10 Gemini calls) and its email was accepted by Resend; a second identical cron call was refused as `already_sent`; Vercel lists the cron `/api/cron/weekly-digest` on `30 2 * * 1`.
 - Problem statement: [`Problem Statement 15.pdf`](<Problem Statement 15.pdf>) · Components Map: [`industry_event_scout_components_map.jpg`](industry_event_scout_components_map.jpg) (both kept intact)
 - Architecture (as built): [`docs/components-map.md`](docs/components-map.md) · Nine Checks: [`docs/nine-checks.md`](docs/nine-checks.md)
 
