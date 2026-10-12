@@ -38,7 +38,16 @@ function webglAvailable(): boolean {
   }
 }
 
-export function TubesBackground({ className, showShuffle = true }: { className?: string; showShuffle?: boolean }) {
+export function TubesBackground({
+  className,
+  showShuffle = true,
+  variant = "hero",
+}: {
+  className?: string;
+  showShuffle?: boolean;
+  /** "hero": fades into the page at the bottom. "page": one fixed layer behind the whole site with an even scrim. */
+  variant?: "hero" | "page";
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const appRef = useRef<TubesApp | null>(null);
   const paletteIndex = useRef(0);
@@ -47,8 +56,15 @@ export function TubesBackground({ className, showShuffle = true }: { className?:
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    // Reduced motion or no WebGL: keep the static gradient (already fully visible); nothing to load.
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches || !webglAvailable()) return;
+    // Reduced motion, touch-only screens (no pointer to follow; saves battery) or no WebGL:
+    // keep the static gradient (already fully visible); nothing to load.
+    if (
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches ||
+      window.matchMedia("(pointer: coarse)").matches ||
+      !webglAvailable()
+    ) {
+      return;
+    }
 
     let cancelled = false;
     (async () => {
@@ -92,17 +108,17 @@ export function TubesBackground({ className, showShuffle = true }: { className?:
   }, []);
 
   return (
-    <div className={cn("absolute inset-0 overflow-hidden", className)}>
+    <div className={cn(variant === "page" ? "pointer-events-none fixed inset-0 -z-10 overflow-hidden" : "absolute inset-0 overflow-hidden", className)}>
       <div aria-hidden="true" className={cn("hero-fallback absolute inset-0 transition-opacity duration-700", status === "running" ? "opacity-30" : "opacity-100")} />
       <canvas ref={canvasRef} aria-hidden="true" className="pointer-events-none absolute inset-0 h-full w-full" />
-      <div aria-hidden="true" className="scrim pointer-events-none absolute inset-0" />
+      <div aria-hidden="true" className={cn("pointer-events-none absolute inset-0", variant === "page" ? "bg-bg/45" : "scrim")} />
       {showShuffle && status === "running" && (
         <button
           type="button"
           onClick={shuffle}
           aria-label="Change background colours"
           title="Change background colours"
-          className="absolute bottom-4 right-4 z-10 inline-flex items-center gap-1.5 rounded-full border border-line-strong bg-surface/70 px-3 py-1.5 text-xs text-muted backdrop-blur transition hover:text-ink"
+          className="pointer-events-auto fixed bottom-4 right-4 z-40 inline-flex items-center gap-1.5 rounded-full border border-line-strong bg-surface/70 px-3 py-1.5 text-xs text-muted backdrop-blur transition hover:text-ink"
         >
           <Shuffle className="size-3.5" aria-hidden="true" />
           Colours

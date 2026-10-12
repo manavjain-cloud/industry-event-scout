@@ -12,7 +12,6 @@ import {
   Workflow,
   Cog,
 } from "lucide-react";
-import { TubesBackground } from "@/components/TubesBackground";
 import { isAdminServer } from "@/lib/auth/server";
 
 const STAGES = [
@@ -48,7 +47,6 @@ export default async function Home() {
       </header>
 
       <section className="relative isolate -mt-[72px] min-h-[640px] overflow-hidden pt-[72px]">
-        <TubesBackground />
         <div className="relative z-10 mx-auto flex min-h-[560px] max-w-6xl flex-col justify-center px-5 py-20">
           <p className="mb-4 inline-flex w-fit items-center gap-2 rounded-full border border-line-strong bg-surface/70 px-3 py-1 text-xs font-medium text-muted backdrop-blur">
             <span className="size-1.5 rounded-full bg-lime" aria-hidden="true" />

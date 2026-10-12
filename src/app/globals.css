@@ -7,8 +7,8 @@
 */
 :root {
   --bg: #07080d;
-  --surface: #0d1118;
-  --surface-2: #131926;
+  --surface: #0d1118b3;
+  --surface-2: #131926cc;
   --surface-3: #1a2233;
   --line: #222c40;
   --line-strong: #33415c;
@@ -51,8 +51,8 @@ html {
   background: var(--bg);
 }
 
+/* html (not body) paints the base colour so the fixed 3D layer behind the content stays visible. */
 body {
-  background: var(--bg);
   color: var(--text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;

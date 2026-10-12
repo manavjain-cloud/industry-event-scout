@@ -3,7 +3,6 @@
 import { CalendarClock, CalendarDays, CircleCheck, History, LoaderCircle, LogOut, Mail, RefreshCw, Settings, TriangleAlert, Radar, Siren } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
-import { TubesBackground } from "@/components/TubesBackground";
 import type { DashboardData } from "@/lib/dashboard-data";
 import type { RunRow } from "@/lib/db/runs";
 import { cn } from "@/lib/cn";
@@ -170,7 +169,6 @@ export function DashboardShell({ data }: { data: DashboardData }) {
   return (
     <div className="flex flex-1 flex-col">
       <header className="relative isolate overflow-hidden border-b border-line">
-        <TubesBackground showShuffle={false} />
         <div className="relative z-10 mx-auto flex max-w-6xl flex-wrap items-end justify-between gap-4 px-5 pb-6 pt-6">
           <div>
             <div className="mb-3 flex items-center gap-2 text-sm text-muted">
