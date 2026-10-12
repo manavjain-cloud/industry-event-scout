@@ -208,3 +208,59 @@ describe("configuration errors never leak secret values", () => {
     }
   });
 });
+
+describe("open-dashboard mode (no ADMIN_PASSWORD) keeps the non-login safeguards", () => {
+  beforeEach(() => {
+    delete process.env.ADMIN_PASSWORD;
+  });
+
+  it("serves the dashboard APIs without a session", async () => {
+    vi.doMock("@/lib/db/client", () => ({ getDb: vi.fn(() => ({})) }));
+    vi.doMock("@/lib/db/preferences", () => ({ getPreferences: vi.fn(async () => ({ timezone: "Asia/Kolkata" })), savePreferences: vi.fn() }));
+    const { GET } = await import("@/app/api/preferences/route");
+    expect((await GET(req("/api/preferences"))).status).toBe(200);
+  });
+
+  it("still refuses cross-origin changes", async () => {
+    const savePreferences = vi.fn();
+    vi.doMock("@/lib/db/client", () => ({ getDb: vi.fn(() => ({})) }));
+    vi.doMock("@/lib/db/preferences", () => ({ getPreferences: vi.fn(), savePreferences }));
+    const { PUT } = await import("@/app/api/preferences/route");
+    const res = await PUT(req("/api/preferences", { method: "PUT", body: "{}", headers: { origin: "https://evil.example", host: "localhost:3000" } }));
+    expect(res.status).toBe(403);
+    expect(savePreferences).not.toHaveBeenCalled();
+  });
+
+  it("does NOT open the cron endpoint: it still needs the CRON_SECRET", async () => {
+    const runWeeklyDigest = vi.fn();
+    vi.doMock("@/lib/pipeline/entrypoints", () => ({ runWeeklyDigest }));
+    vi.doMock("@/lib/pipeline/deps", () => ({ createLiveDeps: vi.fn() }));
+    const { GET } = await import("@/app/api/cron/weekly-digest/route");
+    expect((await GET(req("/api/cron/weekly-digest"))).status).toBe(401);
+    expect((await GET(req("/api/cron/weekly-digest", { headers: { authorization: "Bearer wrong" } }))).status).toBe(401);
+    expect(runWeeklyDigest).not.toHaveBeenCalled();
+  });
+
+  it("lets the proxy through and reports 'open' from the login endpoint", async () => {
+    const { proxy } = await import("@/proxy");
+    const { NextRequest } = await import("next/server");
+    expect((await proxy(new NextRequest("http://localhost:3000/dashboard"))).status).toBe(200);
+    const { POST } = await import("@/app/api/auth/login/route");
+    const res = await POST(req("/api/auth/login", { method: "POST", body: "{}" }));
+    expect(await res.json()).toMatchObject({ ok: true, open: true });
+    expect(res.headers.get("set-cookie")).toBeNull();
+  });
+
+  it("an empty ADMIN_PASSWORD also means open; a set-but-invalid one stays LOCKED (fails closed)", async () => {
+    const { authRequired } = await import("@/lib/auth/mode");
+    process.env.ADMIN_PASSWORD = "";
+    expect(authRequired()).toBe(false);
+    process.env.ADMIN_PASSWORD = "short"; // < 12 chars: invalid, but present
+    expect(authRequired()).toBe(true);
+    const { GET } = await import("@/app/api/preferences/route");
+    expect((await GET(req("/api/preferences"))).status).toBe(401);
+    const { POST } = await import("@/app/api/auth/login/route");
+    const login = await POST(req("/api/auth/login", { method: "POST", body: JSON.stringify({ password: "short" }) }));
+    expect([401, 503]).toContain(login.status); // can never sign in until the value is fixed
+  });
+});

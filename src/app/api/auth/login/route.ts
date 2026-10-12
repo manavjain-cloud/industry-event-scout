@@ -3,11 +3,13 @@ import { errorResponse, isSameOrigin, json } from "@/lib/auth/guard";
 import { SESSION_COOKIE, createSessionToken, passwordMatches, sessionCookieOptions } from "@/lib/auth/session";
 import { clientFingerprint, isLoginBlocked, recordLoginAttempt } from "@/lib/auth/throttle";
 import { getDb } from "@/lib/db/client";
+import { authRequired } from "@/lib/auth/mode";
 import { hasEnv } from "@/lib/env";
 import { loginInputSchema } from "@/lib/schemas";
 
 export async function POST(request: Request) {
   if (!isSameOrigin(request)) return json({ error: "Cross-origin request refused" }, 403);
+  if (!authRequired()) return json({ ok: true, open: true });
   try {
     const body = loginInputSchema.safeParse(await request.json().catch(() => null));
     if (!body.success) return json({ error: "Enter the dashboard password." }, 400);

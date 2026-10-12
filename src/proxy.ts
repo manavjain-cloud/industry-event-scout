@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { authRequired } from "@/lib/auth/mode";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth/session";
 
 /**
@@ -6,6 +7,7 @@ import { SESSION_COOKIE, verifySessionToken } from "@/lib/auth/session";
  * only check - the dashboard page and every API route verify the session again.
  */
 export async function proxy(request: NextRequest) {
+  if (!authRequired()) return NextResponse.next();
   let authenticated = false;
   try {
     authenticated = await verifySessionToken(request.cookies.get(SESSION_COOKIE)?.value);

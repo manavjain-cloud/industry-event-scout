@@ -1,6 +1,7 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { MissingEnvError, env } from "@/lib/env";
 import { errorMessage, log } from "@/lib/log";
+import { authRequired } from "./mode";
 import { cookieFromHeader, SESSION_COOKIE, verifySessionToken } from "./session";
 
 export function json(body: unknown, status = 200, headers: Record<string, string> = {}): Response {
@@ -9,6 +10,7 @@ export function json(body: unknown, status = 200, headers: Record<string, string
 
 /** Is this request carrying a valid dashboard session cookie? */
 export async function hasAdminSession(request: Request): Promise<boolean> {
+  if (!authRequired()) return true; // open-dashboard mode (no ADMIN_PASSWORD configured)
   try {
     return await verifySessionToken(cookieFromHeader(request.headers.get("cookie"), SESSION_COOKIE));
   } catch {

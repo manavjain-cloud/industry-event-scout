@@ -119,6 +119,8 @@ estimated read time, not subtracted into a "savings" number. No link-click track
 | Unauthorised email runs | Cron endpoint requires `Authorization: Bearer $CRON_SECRET` (constant-time); dashboard routes require a signed HttpOnly SameSite=Strict session; mutating routes also check Origin; login is throttled in Neon | `src/lib/auth/*` · `tests/security.test.ts`, `tests/e2e/smoke.spec.ts` |
 | Duplicate digests on retry | Atomic claim per ISO week (unique `run_key`), `email_status='sent'` blocks any repeat, stale-run take-over, Resend idempotency key = run + content hash | `src/lib/db/runs.ts` · `tests/db.test.ts`, `tests/pipeline.test.ts` |
 
+**Operator choice - open dashboard.** Sign-in is required only while `ADMIN_PASSWORD` is set (`src/lib/auth/mode.ts`). The deployed demo may run with it unset so evaluators can open the dashboard without a password; in that mode the settings, manual refresh and test-send are reachable by anyone with the URL. Remaining limits: manual runs 1 per 5 min, test emails 1 per 2 min, same-origin check on every change, `CRON_SECRET` on the scheduled endpoint, and the weekly digest is idempotent per ISO week. Re-enable protection by setting `ADMIN_PASSWORD` in Vercel and redeploying.
+
 **Residual risks (honest).** (1) A page can quote a date that is itself wrong; we guarantee the date is *what the page says*, not that the page is right.
 (2) Gemini scores are judgement, not truth. (3) Vercel Hobby cron is best-effort and may run any time within the scheduled hour. (4) A Resend send whose database confirmation write fails 3 times
 is reported in the run errors ("do not retry manually").

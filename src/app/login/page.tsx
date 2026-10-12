@@ -7,7 +7,7 @@ import { LoginForm } from "./LoginForm";
 export const metadata: Metadata = { title: "Sign in" };
 
 export default async function LoginPage() {
-  if (await isAdminServer()) redirect("/dashboard");
+  if (await isAdminServer()) redirect("/dashboard"); // also true in open-dashboard mode
   return (
     <main className="grid flex-1 place-items-center px-5 py-16">
       <div className="w-full max-w-sm">

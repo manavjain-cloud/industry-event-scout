@@ -155,6 +155,7 @@ describe("DashboardShell", async () => {
     metrics: null,
     nextRun: { iso: "2026-10-19T02:30:00Z", label: "Mon 19 Oct 2026, 8:00 AM IST", windowLabel: "7:30 AM - 8:29 AM" },
     activeRunId: null,
+    authEnabled: true,
     generatedAt: "2026-10-12T03:30:00Z",
   };
 

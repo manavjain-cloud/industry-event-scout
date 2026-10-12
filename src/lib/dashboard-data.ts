@@ -1,4 +1,5 @@
 import { LIMITS, MANUAL_BASELINE_MINUTES, MIN_DIGEST_RELEVANCE } from "@/lib/config";
+import { authRequired } from "@/lib/auth/mode";
 import { getDb } from "@/lib/db/client";
 import { loadEventsOverlapping } from "@/lib/db/events";
 import { getPreferences } from "@/lib/db/preferences";
@@ -74,6 +75,8 @@ export interface DashboardData {
   nextRun: NextRun | null;
   /** A run that is genuinely in flight (not stale) so the UI can resume showing its progress. */
   activeRunId: string | null;
+  /** False when the dashboard is open (no ADMIN_PASSWORD): the UI hides "Sign out". */
+  authEnabled: boolean;
   generatedAt: string;
 }
 
@@ -127,6 +130,7 @@ export async function loadDashboardData(db?: Db, now: Date = new Date()): Promis
     metrics: null,
     nextRun: null,
     activeRunId: null,
+    authEnabled: authRequired(),
     generatedAt: now.toISOString(),
   };
   if (!db && !hasEnv("DATABASE_URL")) return { ...base, dbError: "DATABASE_URL is not set." };

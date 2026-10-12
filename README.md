@@ -48,7 +48,7 @@ Server-only secrets are never prefixed `NEXT_PUBLIC_` and never reach the browse
 | `RESEND_API_KEY` | resend.com → API Keys | |
 | `RESEND_FROM_EMAIL` | e.g. `Industry Event Scout <onboarding@resend.dev>` | see *Email delivery* below |
 | `CRON_SECRET` | generate: `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"` | ≥ 16 chars; Vercel sends it automatically as `Authorization: Bearer …` |
-| `ADMIN_PASSWORD` | choose one | ≥ 12 chars; dashboard sign-in |
+| `ADMIN_PASSWORD` | choose one | ≥ 12 chars; dashboard sign-in. **Optional switch:** leave it unset/empty and the dashboard opens with **no login** (demo mode). Anyone with the URL can then change settings, trigger refreshes and send test emails, limited only by the run throttles and same-origin check; the cron endpoint still needs `CRON_SECRET`. A password that is set but invalid keeps the dashboard locked. |
 | `AUTH_SECRET` | generate: `node -e "console.log(require('crypto').randomBytes(48).toString('base64url'))"` | ≥ 32 chars; signs the session cookie |
 | `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` locally, your Vercel URL when deployed | public, used for the dashboard link in emails |
 

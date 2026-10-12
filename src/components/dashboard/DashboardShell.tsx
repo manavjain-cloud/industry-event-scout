@@ -186,9 +186,11 @@ export function DashboardShell({ data }: { data: DashboardData }) {
             <Button variant="primary" icon={RefreshCw} onClick={startRun} busy={running} disabled={!data.dbReady}>
               {running ? "Refreshing..." : "Refresh events"}
             </Button>
-            <Button variant="ghost" icon={LogOut} onClick={signOut}>
-              Sign out
-            </Button>
+            {data.authEnabled && (
+              <Button variant="ghost" icon={LogOut} onClick={signOut}>
+                Sign out
+              </Button>
+            )}
           </div>
         </div>
       </header>
