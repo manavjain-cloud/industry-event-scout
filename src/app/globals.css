@@ -1,0 +1,92 @@
+@import "tailwindcss";
+
+/*
+  Industry Event Scout design tokens.
+  Dark, high-contrast professional surfaces; neon is reserved for accents and the hero.
+  Urgency is never colour-only: it always pairs colour + icon + text.
+*/
+:root {
+  --bg: #07080d;
+  --surface: #0d1118;
+  --surface-2: #131926;
+  --surface-3: #1a2233;
+  --line: #222c40;
+  --line-strong: #33415c;
+  --text: #eaeef7;
+  --muted: #98a3ba;
+  --faint: #6b7690;
+
+  --cyan: #22e1ff;
+  --violet: #9b7bff;
+  --magenta: #ff4fb0;
+  --lime: #a6ff62;
+  --amber: #ffc24a;
+  --rose: #ff5c7a;
+  --rose-bg: #2a0f1a;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-ink: var(--text);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-cyan: var(--cyan);
+  --color-violet: var(--violet);
+  --color-magenta: var(--magenta);
+  --color-lime: var(--lime);
+  --color-amber: var(--amber);
+  --color-rose: var(--rose);
+  --color-rose-bg: var(--rose-bg);
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, monospace;
+}
+
+html {
+  color-scheme: dark;
+  background: var(--bg);
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--cyan) 35%, transparent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+/* Hero glow used when WebGL is unavailable or the user prefers reduced motion. */
+.hero-fallback {
+  background:
+    radial-gradient(60% 50% at 20% 30%, color-mix(in srgb, var(--cyan) 22%, transparent), transparent 70%),
+    radial-gradient(50% 50% at 80% 60%, color-mix(in srgb, var(--magenta) 18%, transparent), transparent 70%),
+    radial-gradient(40% 40% at 55% 20%, color-mix(in srgb, var(--violet) 20%, transparent), transparent 70%);
+}
+
+.scrim {
+  background: linear-gradient(180deg, rgb(7 8 13 / 0.1) 0%, rgb(7 8 13 / 0.55) 55%, var(--bg) 100%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
